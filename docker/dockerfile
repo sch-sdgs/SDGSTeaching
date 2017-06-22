@@ -1,0 +1,178 @@
+FROM ubuntu:14.04
+
+RUN mkdir /software
+WORKDIR /software
+
+RUN apt-get update
+RUN apt-get -y install software-properties-common
+RUN add-apt-repository ppa:webupd8team/java
+RUN apt-get -y install python-software-properties
+RUN apt-get update
+RUN echo "oracle-java8-installer shared/accepted-oracle-license-v1-1 select true" | sudo debconf-set-selections
+RUN apt-get -y install oracle-java8-installer
+
+RUN apt-get -y install wget
+RUN apt-get -y install nano
+RUN apt-get -y -y install bzip2
+RUN apt-get -y install tar
+RUN apt-get -y install build-essential
+
+RUN apt-get update
+RUN apt-get -y install python-setuptools
+RUN easy_install pip
+RUN apt-get -y install make
+RUN apt-get -y install openssh-client
+RUN apt-get -y install software-properties-common
+RUN apt-get -y install zlib1g-dev unzip
+RUN apt-get -y install libncurses5-dev libncursesw5-dev
+RUN apt-get -y install software-properties-common
+RUN apt-get -y install libcurl4-gnutls-dev
+RUN pip install pycurl
+RUN apt-get -y install rsync
+
+WORKDIR /software
+
+COPY bwa-0.7.15.tar .
+RUN tar -xvf bwa-0.7.15.tar
+WORKDIR /software/bwa-0.7.15
+RUN make
+
+WORKDIR /software
+
+RUN wget https://github.com/samtools/samtools/releases/download/1.3.1/samtools-1.3.1.tar.bz2
+RUN bzip2 -d samtools-1.3.1.tar.bz2
+RUN tar -xvf samtools-1.3.1.tar
+WORKDIR /software/samtools-1.3.1
+RUN make
+
+
+WORKDIR /software
+RUN rm samtools-1.3.1.tar
+
+RUN wget https://github.com/samtools/bcftools/releases/download/1.3.1/bcftools-1.3.1.tar.bz2
+RUN bzip2 -d bcftools-1.3.1.tar.bz2
+RUN tar -xvf bcftools-1.3.1.tar
+WORKDIR /software/bcftools-1.3.1
+RUN make
+
+WORKDIR /software
+
+RUN wget https://github.com/samtools/htslib/releases/download/1.3.1/htslib-1.3.1.tar.bz2
+RUN bzip2 -d htslib-1.3.1.tar.bz2
+RUN tar -xvf htslib-1.3.1.tar
+WORKDIR htslib-1.3.1
+RUN make
+
+WORKDIR /software
+RUN rm htslib-1.3.1.tar
+
+RUN wget https://github.com/broadinstitute/picard/releases/download/2.5.0/picard-tools-2.5.0.zip
+RUN unzip picard-tools-2.5.0.zip
+
+RUN chmod +x /software/picard-tools-2.5.0/picard.jar
+
+RUN rm picard-tools-2.5.0.zip
+
+RUN mkdir GenomeAnalysisTK-3.6
+WORKDIR /software/GenomeAnalysisTK-3.6
+COPY GATK-3.6/* ./
+
+WORKDIR /software
+RUN chmod +x /software/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar
+
+RUN mkdir sambamba_v0.6.3
+WORKDIR /software/sambamba_v0.6.3
+RUN wget https://github.com/lomereiter/sambamba/releases/download/v0.6.3/sambamba_v0.6.3_linux.tar.bz2
+RUN bzip2 -d sambamba_v0.6.3_linux.tar.bz2
+RUN tar -xvf sambamba_v0.6.3_linux.tar
+RUN mv sambamba_v0.6.3 sambamba
+RUN rm sambamba_v0.6.3_linux.tar
+
+WORKDIR /software
+
+RUN wget https://github.com/arq5x/bedtools2/releases/download/v2.25.0/bedtools-2.25.0.tar.gz
+RUN tar -zxvf bedtools-2.25.0.tar.gz
+WORKDIR /software/bedtools2
+RUN make
+
+RUN wget http://genome.sph.umich.edu/w/images/7/70/BamUtilLibStatGen.1.0.13.tgz
+RUN tar -zxvf BamUtilLibStatGen.1.0.13.tgz
+WORKDIR bamUtil_1.0.13
+RUN make
+
+WORKDIR /software
+
+RUN wget http://downloads.sourceforge.net/project/snpeff/snpEff_latest_core.zip
+RUN unzip snpEff_latest_core.zip
+RUN rm snpEff_latest_core.zip
+
+WORKDIR /software
+
+RUN apt-get -y install software-properties-common
+RUN add-apt-repository -y ppa:george-edison55/cmake-3.x
+RUN apt-get update
+RUN apt-get -y install cmake
+
+RUN apt-get -y install git
+RUN git clone --recursive https://github.com/ekg/freebayes.git
+WORKDIR /software/freebayes
+RUN apt-get -y install libbz2-1.0 libbz2-dev libbz2-ocaml libbz2-ocaml-dev liblzma-dev
+RUN make
+
+WORKDIR /software
+
+RUN git clone https://github.com/atks/vt.git
+WORKDIR /software/vt
+RUN make
+
+WORKDIR /software
+
+RUN wget https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.11.5.zip
+RUN unzip fastqc_v0.11.5.zip
+
+WORKDIR /software
+
+RUN git clone https://github.com/Ensembl/ensembl-vep.git
+WORKDIR /software/ensembl-vep
+RUN cpan HTTP::Tiny
+RUN apt-get -y install libmysqlclient-dev
+RUN cpan DBI
+RUN cpan DBD::mysql
+RUN apt-get install curl
+RUN cpan Archive::Zip
+RUN cpan Bio::Root::Version
+RUN perl INSTALL.pl
+
+RUN apt-get -y install python-setuptools python-dev build-essential
+RUN apt-get -y install python-pip
+
+RUN mkdir /venvs
+WORKDIR /venvs
+
+RUN pip install virtualenv
+RUN virtualenv stp
+RUN /bin/bash -c "source /venvs/stp/bin/activate"
+
+RUN pip install pysam
+RUN pip install pyvcf
+
+
+RUN ln -s /software/bwa-0.7.15/bwa /usr/local/bin/bwa
+RUN ln -s /software/samtools-1.3.1/samtools /usr/local/bin/samtools
+RUN ln -s /software/sambamba_v0.6.3/sambamba /usr/local/bin/sambamba
+RUN ln -s /software/GenomeAnalysisTK-3.6/GenomeAnalysisTK.jar /usr/local/bin/GenomeAnalysisTK.jar
+RUN ln -s /software/bcftools-1.3.1/bcftools /usr/local/bin/bcftools
+RUN ln -s /software/picard-tools-2.5.0/picard.jar /usr/local/bin/picard.jar
+RUN ln -s /software/fastqc_v0.11.5/fastqc /usr/local/bin/fastqc
+RUN ln -s /software/vt/vt /usr/local/bin/vt
+
+RUN apt-get -y install openssh-server
+
+RUN mkdir /var/run/sshd
+RUN chmod 0755 /var/run/sshd
+
+RUN useradd -ms /bin/bash --groups sudo stpuser
+RUN echo stpuser:stpuser | chpasswd
+
+RUN echo "service ssh start" > /startup.sh
+RUN echo "tail -f /dev/null" >> /startup.sh
