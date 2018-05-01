@@ -16,4 +16,4 @@ while read USER; do
     echo "${USER}'s docker is now running on 10.182.155.27:${PORT}"
     PORT=`expr $PORT + 1`
 
-done < $USER_LIST
+done < $USER_LISTz

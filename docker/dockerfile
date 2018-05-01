@@ -174,5 +174,6 @@ RUN chmod 0755 /var/run/sshd
 RUN useradd -ms /bin/bash --groups sudo stpuser
 RUN echo stpuser:stpuser | chpasswd
 
+RUN chmod -R 777 /software/*
+
 RUN echo "service ssh start" > /startup.sh
-RUN echo "tail -f /dev/null" >> /startup.sh
